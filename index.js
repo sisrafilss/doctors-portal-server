@@ -19,7 +19,27 @@ const client = new MongoClient(uri, {
 async function run() {
 	try {
 		await client.connect();
-		console.log("database connected successfully");
+
+		const database = client.db("doctors_portal");
+		const appointmentCollection = database.collection("appointments");
+
+		// GET Appointments
+		app.get("/appointments", async (req, res) => {
+			const email = req.query.email;
+			const date = new Date(req.query.date).toLocaleDateString();
+			const query = { email: email, date: date };
+
+			const cursor = appointmentCollection.find(query);
+			const result = await cursor.toArray();
+			res.json(result);
+		});
+
+		// POST Appointment
+		app.post("/appointments", async (req, res) => {
+			const appointment = req.body;
+			const result = await appointmentCollection.insertOne(appointment);
+			res.json(result);
+		});
 	} finally {
 		// await client.close();
 	}
